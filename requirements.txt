@@ -1,0 +1,5 @@
+Flask
+python-dotenv
+agno
+firecrawl-sdk
+# Añade aquí otras dependencias directas que tu proyecto necesite 

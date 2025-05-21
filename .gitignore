@@ -1,1 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+ENV/
+
+# Environment variables
 .env
+
+# Databases - comment if you want to version control the dev database
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente ChileAtiende</title>
+    <!-- La ruta a style.css debe ser relativa a la carpeta 'static' -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- marked.js para renderizar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <main class="chat-container">
+        <header class="chat-header">
+            <img src="{{ url_for('static', filename='images/logo_chileatiende.png') }}" alt="Logo de ChileAtiende" id="header-logo">
+            <h1>Asistente ChileAtiende</h1>
+        </header>
+        <div id="chat-window" class="chat-window" role="log" aria-live="polite">
+            <div class="chat-message bot">
+                <div class="message">
+                    ¡Hola! Soy Tomas, su asistente de ChileAtiende. ¿Con quién tengo el gusto de hablar?
+                </div>
+            </div>
+        </div>
+        <div id="loading-indicator" class="loading-indicator" style="display: none;">
+            <div class="loading-content-wrapper">
+                <div class="spinner"></div>
+                <p>Estoy escribiendo su respuesta, por favor espere...</p>
+            </div>
+        </div>
+        <footer class="input-container">
+            <textarea id="user-input" placeholder="Escribe tu pregunta aquí..." aria-label="Escribe tu pregunta aquí" rows="1"></textarea>
+            <button id="send-btn" aria-label="Enviar pregunta">Enviar</button>
+        </footer>
+    </main>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 
