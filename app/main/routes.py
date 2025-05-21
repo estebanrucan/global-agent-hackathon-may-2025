@@ -1,7 +1,6 @@
-from flask import render_template, session, current_app
+from flask import render_template, session
 from app.main import bp
 import uuid
-import os # Para os.path
 
 @bp.route('/')
 def index():
