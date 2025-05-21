@@ -21,5 +21,6 @@
             ]
         }
     },
+    "forwardPorts": [5000],
     "postCreateCommand": "pip install agno firecrawl-py google-genai jupyter pandas seaborn"
 }
