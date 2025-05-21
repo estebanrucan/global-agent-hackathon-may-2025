@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente ChileAtiende</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- marked.js para renderizar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <main class="chat-container">
+        <h1>Asistente ChileAtiende</h1>
+        <div id="chat-window" class="chat-window" role="log" aria-live="polite">
+            <!-- Mensajes del chat se añadirán aquí -->
+            <div class="chat-message bot">
+                <div class="message">
+                    ¡Hola! Soy tu asistente virtual de ChileAtiende. ¿En qué puedo ayudarte hoy?
+                </div>
+            </div>
+        </div>
+        <div id="loading-indicator" class="loading-indicator" style="display: none;">
+            Escribiendo...
+        </div>
+        <footer class="input-container">
+            <textarea id="user-input" placeholder="Escribe tu pregunta aquí..." aria-label="Escribe tu pregunta aquí" rows="1"></textarea>
+            <button id="send-btn" aria-label="Enviar pregunta">Enviar</button>
+        </footer>
+    </main>
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 
