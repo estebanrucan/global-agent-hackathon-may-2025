@@ -1,5 +1,5 @@
 Flask
 python-dotenv
 agno
-firecrawl-sdk
+firecrawl-py
 # Añade aquí otras dependencias directas que tu proyecto necesite 
