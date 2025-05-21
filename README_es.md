@@ -1,10 +1,10 @@
-# Asistente de IA Multiagente ChileAtiende
+# Asistente de IA ChileAtiende
 
 ## Resumen y Objetivo Comercial
 
-Este proyecto es un sistema de inteligencia artificial multiagente que ingiere, indexa y razona sobre toda la información pública del sitio web *chileatiende.gob.cl*. Su objetivo principal es proporcionar respuestas claras y concisas a las preguntas de los ciudadanos sobre los servicios gubernamentales, ahorrándoles un tiempo valioso, con un enfoque especial en ayudar a los adultos mayores.
+Este proyecto es un asistente de inteligencia artificial que ingiere, indexa y razona sobre toda la información pública del sitio web *chileatiende.gob.cl*. Su objetivo principal es proporcionar respuestas claras y concisas a las preguntas de los ciudadanos sobre los servicios gubernamentales, ahorrándoles un tiempo valioso, con un enfoque especial en ayudar a los adultos mayores.
 
-El proyecto tiene como objetivo demostrar un flujo de trabajo donde agentes autónomos rastrean, estructuran y actualizan continuamente el contenido de ChileAtiende, mientras que un agente conversacional proporciona respuestas fiables y respaldadas por citas en lenguaje natural.
+El proyecto tiene como objetivo demostrar un flujo de trabajo donde un agente rastrea, estructura y actualiza continuamente el contenido de ChileAtiende, proporcionando respuestas fiables y respaldadas por citas en lenguaje natural.
 
 ## Equipo del Proyecto
 
