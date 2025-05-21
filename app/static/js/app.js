@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         contentDiv.classList.add('message');
 
         if (sender === 'bot' && isHtml) {
-            contentDiv.innerHTML = text; // Asume que text es HTML seguro (proveniente de marked.parse)
+            contentDiv.innerHTML = text; // HTML sanitizado para mitigar XSS
         } else {
             contentDiv.textContent = text;
         }
@@ -71,8 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.error) {
                 appendMessage('bot', `Error: ${data.error}`);
             } else {
-                const htmlResponse = marked.parse(data.response); // Usa marked.js
-                appendMessage('bot', htmlResponse, true);
+                // Convertir Markdown a HTML y sanitizarlo para mitigar XSS antes de insertarlo
+                const htmlResponse = marked.parse(data.response);
+                const safeHtml = DOMPurify.sanitize(htmlResponse);
+                appendMessage('bot', safeHtml, true);
             }
         } catch (e) {
             appendMessage('bot', `Error de comunicación: ${e.message}`);
