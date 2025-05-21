@@ -2,4 +2,5 @@ Flask
 python-dotenv
 agno
 firecrawl-py
-# Añade aquí otras dependencias directas que tu proyecto necesite 
+# Añade aquí otras dependencias directas que tu proyecto necesite
+google-genai
