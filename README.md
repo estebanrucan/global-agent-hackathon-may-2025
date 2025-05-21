@@ -1,10 +1,10 @@
-# ChileAtiende AI Multi-Agent Assistant
+# ChileAtiende AI Assistant
 
 ## Overview and Business Objective
 
-This project is a multi-agent artificial intelligence system that ingests, indexes, and reasons about all public information on the *chileatiende.gob.cl* website. Its main goal is to provide clear and concise answers to citizens' questions about government services, saving them valuable time, with a special focus on assisting older adults.
+This project is an artificial intelligence assistant that ingests, indexes, and reasons about all public information on the *chileatiende.gob.cl* website. Its main goal is to provide clear and concise answers to citizens' questions about government services, saving them valuable time, with a special focus on assisting older adults.
 
-The project aims to demonstrate a pipeline where autonomous agents crawl, structure, and continuously refresh ChileAtiende content, while a conversational agent provides reliable, citation-backed answers in natural language.
+The project aims to demonstrate a pipeline where a single AI agent crawls, structures, and continuously refreshes ChileAtiende content, providing reliable, citation-backed answers in natural language.
 
 ## Project Team
 
