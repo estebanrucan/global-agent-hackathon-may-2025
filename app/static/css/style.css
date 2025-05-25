@@ -46,7 +46,7 @@ body {
 /* Solo aplicar bordes y sombra en pantallas más grandes donde no ocupa el 100% */
 @media (min-width: 601px) {
     body {
-        padding: 20px; /* Restaurar padding */
+        padding: 0px; /* Restaurar padding */
     }
     .chat-container {
         height: calc(100vh - 40px); /* Ajustar altura considerando el padding del body */
@@ -88,7 +88,7 @@ h1 {
     flex-grow: 1; /* Ocupar el espacio restante */
     /* height: auto; No necesita altura fija, flex-grow lo maneja */
     overflow-y: auto;
-    padding: 20px;
+    padding: 5px 20px 20px 20px; /* Reducido padding superior */
     background-color: #fdfdfd;
     border-bottom: 1px solid var(--border-color);
     scroll-behavior: smooth;
@@ -113,6 +113,8 @@ h1 {
 .chat-message {
     margin-bottom: 15px;
     display: flex;
+    align-items: flex-start; /* Alinear arriba para acomodar el botón */
+    gap: 8px; /* Espacio entre mensaje y botón */
 }
 
 .chat-message.user {
@@ -121,6 +123,7 @@ h1 {
 
 .chat-message.bot {
     justify-content: flex-start;
+    flex-direction: row; /* Mensaje primero, luego botón */
 }
 
 .message {
@@ -288,6 +291,73 @@ button#send-btn:disabled {
     cursor: not-allowed;
 }
 
+/* Botón de audio para mensajes del bot */
+.audio-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    margin-top: 4px; /* Alinear con el texto del mensaje */
+}
+
+.audio-button:hover {
+    background-color: rgba(0, 86, 179, 0.1);
+}
+
+.audio-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.3);
+}
+
+.audio-button:active {
+    transform: scale(0.95);
+}
+
+.speaker-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+}
+
+/* Animación cuando está hablando */
+.audio-button.speaking {
+    background-color: rgba(0, 86, 179, 0.15);
+}
+
+.audio-button.speaking .speaker-icon {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.audio-button.speaking .sound-waves {
+    animation: soundWave 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes soundWave {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 /* Mejoras responsive móviles */
 @media (max-width: 600px) {
     body {
@@ -310,7 +380,7 @@ button#send-btn:disabled {
         /* padding: 12px 15px; Ya no es necesario */
     }
     .chat-window {
-        padding: 15px;
+        padding: 5px 15px 15px 15px; /* Reducido padding superior para móvil */
         /* No se necesita ajustar altura aquí, flex-grow hace el trabajo */
     }
     .input-container {
@@ -326,5 +396,16 @@ button#send-btn:disabled {
     button#send-btn {
         /* width: 100%; Quitado */
         padding: 10px 20px; /* Ajustar padding en móvil */
+    }
+
+    .audio-button {
+        width: 32px;
+        height: 32px;
+        padding: 6px;
+    }
+    
+    .speaker-icon {
+        width: 18px;
+        height: 18px;
     }
 } 

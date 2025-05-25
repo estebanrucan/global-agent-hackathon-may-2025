@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatWindow = document.getElementById('chat-window');
     const loadingIndicator = document.getElementById('loading-indicator');
 
+    // Variable para controlar si la síntesis de voz está activa
+    let speechSynthesis = window.speechSynthesis;
+    let currentUtterance = null;
+
     // Ajustar altura del textarea dinámicamente
     userInput.addEventListener('input', function () {
         this.style.height = 'auto';
@@ -24,8 +28,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         msgArticle.appendChild(contentDiv);
+
+        // Añadir botón de audio solo para mensajes del bot
+        if (sender === 'bot') {
+            const audioButton = document.createElement('button');
+            audioButton.classList.add('audio-button');
+            audioButton.setAttribute('aria-label', 'Reproducir mensaje en voz alta');
+            audioButton.innerHTML = `
+                <svg class="speaker-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path class="sound-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            `;
+            
+            // Obtener el texto plano del mensaje para la síntesis de voz
+            const plainText = contentDiv.textContent || contentDiv.innerText;
+            
+            audioButton.addEventListener('click', function() {
+                toggleSpeech(plainText, audioButton);
+            });
+            
+            msgArticle.appendChild(audioButton);
+        }
+
         chatWindow.appendChild(msgArticle);
         chatWindow.scrollTop = chatWindow.scrollHeight; // Mantener el scroll abajo
+    }
+
+    function toggleSpeech(text, button) {
+        // Si hay una síntesis en curso, detenerla
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+            // Si el botón actual es el mismo que inició la síntesis, solo detener
+            if (button.classList.contains('speaking')) {
+                button.classList.remove('speaking');
+                return;
+            }
+            // Si es un botón diferente, quitar la clase del anterior
+            document.querySelectorAll('.audio-button.speaking').forEach(btn => {
+                btn.classList.remove('speaking');
+            });
+        }
+
+        // Crear nueva síntesis de voz
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = 'es-ES'; // Español
+        currentUtterance.rate = 1.0; // Velocidad normal
+        currentUtterance.pitch = 1.2; // Tono ligeramente más alto
+
+        // Marcar el botón como activo
+        button.classList.add('speaking');
+
+        // Eventos de la síntesis
+        currentUtterance.onend = function() {
+            button.classList.remove('speaking');
+        };
+
+        currentUtterance.onerror = function() {
+            button.classList.remove('speaking');
+            console.error('Error en la síntesis de voz');
+        };
+
+        // Iniciar la síntesis
+        speechSynthesis.speak(currentUtterance);
     }
 
     function showLoading(isLoading) {
@@ -93,4 +158,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     userInput.focus(); // Enfocar el input al cargar la página
+
+    // Añadir funcionalidad al botón de audio del mensaje inicial
+    const initialAudioButton = document.querySelector('.chat-message.bot .audio-button');
+    if (initialAudioButton) {
+        const initialMessageElement = document.querySelector('.chat-message.bot .message');
+        if (initialMessageElement) {
+            const initialMessage = initialMessageElement.textContent || initialMessageElement.innerText;
+            initialAudioButton.addEventListener('click', function() {
+                toggleSpeech(initialMessage, initialAudioButton);
+            });
+        }
+    }
 }); 
