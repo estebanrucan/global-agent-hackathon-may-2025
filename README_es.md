@@ -53,52 +53,43 @@ El proyecto sigue una estructura modular para facilitar el mantenimiento y la es
 │   └── templates/          # Plantillas HTML (index.html)
 ├── data/                   # Directorio para bases de datos (ej., agent_sessions.db)
 ├── config.py               # Configuraciones de la aplicación Flask (claves, debug)
-├── run.py                  # Script para ejecutar la aplicación
-├── .env                    # Archivo para variables de entorno (API Keys)
-├── requirements.txt        # Dependencias del proyecto
+├── run.py                  # Script para ejecutar la aplicación (usado primariamente dentro de Docker)
+├── .env                    # Archivo para variables de entorno (API Keys) - DEBES CREARLO
+├── .env.example            # Ejemplo de variables de entorno
+├── requirements.txt        # Dependencias del proyecto (usadas por Docker)
+├── Dockerfile              # Define la imagen Docker para la aplicación
+├── .dockerignore           # Especifica archivos a ignorar por Docker
+├── docker-compose.yml      # Define servicios, redes y volúmenes para Docker
+├── tests/                  # Directorio de pruebas
+│   ├── __init__.py
+│   ├── conftest.py         # Configuraciones comunes para pruebas (fixtures)
+│   ├── test_agent_core.py  # Pruebas para el núcleo del agente
+│   ├── test_api.py         # Pruebas para las rutas de la API
+│   └── test_app.py         # Pruebas generales de la aplicación
 └── README.md               # Este archivo (versión en inglés)
 └── README_es.md            # Versión en español de este archivo
 ```
 
 ## Prerrequisitos
 
-*   Python 3.9 o superior
-*   pip (gestor de paquetes de Python)
-*   Un navegador web moderno
+*   Docker Desktop (o Docker Engine + Docker Compose) instalado y en ejecución.
+*   Un navegador web moderno.
+*   Git (para clonar el repositorio).
 
 ## Configuración del Entorno
 
-1.  **Navegar al Directorio del Proyecto**:
-    Abre tu terminal o símbolo del sistema y navega al directorio principal donde se encuentran los archivos de este proyecto.
+1.  **Clonar el Repositorio**:
     ```bash
-    cd ruta/a/tu/chileatiende_assistant
+    git clone <repository_url>
+    cd chileatiende_assistant
     ```
+    (Reemplaza `<repository_url>` con la URL real de tu repositorio Git)
 
-2.  **Crear un Entorno Virtual** (recomendado):
-    ```bash
-    python -m venv venv
-    ```
-    Actívalo:
-    *   En Windows:
-        ```bash
-        venv\Scripts\activate
-        ```
-    *   En macOS/Linux:
-        ```bash
-        source venv/bin/activate
-        ```
-
-3.  **Instalar Dependencias**:
-    Asegúrate de tener el archivo `requirements.txt` en la raíz del proyecto.
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Configurar Variables de Entorno**:
+2.  **Configurar Variables de Entorno**:
     En la raíz del proyecto, encontrarás un archivo llamado `.env.example`.
     Haz una copia de este archivo y llámala `.env`:
 
-    *   En Windows (Símbolo del sistema):
+    *   En Windows (Símbolo del sistema o PowerShell):
         ```bash
         copy .env.example .env
         ```
@@ -113,28 +104,58 @@ El proyecto sigue una estructura modular para facilitar el mantenimiento y la es
     FIRECRAWL_API_KEY="tu_clave_api_firecrawl_aqui"
     GOOGLE_API_KEY="tu_clave_api_google_gemini_aqui"
     SECRET_KEY="cambia_esto_por_una_cadena_secreta_muy_larga_y_segura"
-    FLASK_DEBUG=True
+    FLASK_DEBUG=True # Configura a False para un comportamiento similar a producción dentro de Docker
     ```
-    Reemplaza los valores de ejemplo con tus credenciales reales y configuraciones deseadas. El archivo `.env` está incluido en `.gitignore` y no debe ser subido al control de versiones.
+    Reemplaza los valores de ejemplo con tus credenciales reales y configuraciones deseadas. El archivo `.env` es crucial para que la aplicación se ejecute correctamente dentro de Docker y está incluido en `.dockerignore`, por lo que no se subirá al control de versiones.
 
-## Ejecución de la Aplicación
+## Ejecución de la Aplicación (con Docker)
 
-Antes de ejecutar la aplicación, es crucial asegurarse de que todas las pruebas pasen.
+Con Docker y Docker Compose instalados, y tu archivo `.env` configurado:
 
-1.  **Ejecutar Pruebas**:
-    Abre tu terminal en la raíz del proyecto y ejecuta las pruebas:
+1.  **Construir y Ejecutar la Aplicación y Pruebas**:
+    Abre tu terminal en el directorio raíz del proyecto (`chileatiende_assistant`) y ejecuta:
     ```bash
-    pytest --cov=app
+    docker-compose up --build
     ```
-    Si todas las pruebas pasan, procede al siguiente paso. Si alguna prueba falla, por favor resuélvela antes de iniciar la aplicación.
+    Este comando ahora orquestará los servicios de la siguiente manera:
+    *   Primero, construirá la imagen Docker para la aplicación (si es la primera vez o si `Dockerfile` o archivos relacionados cambiaron).
+    *   Luego, iniciará el servicio `tests`. Este servicio ejecuta todas las pruebas del proyecto (ej., `pytest --cov=app`).
+    *   **Si alguna prueba en el servicio `tests` falla, el proceso `docker-compose up` se detendrá y el servicio `app` no se iniciará.**
+    *   Si todas las pruebas en el servicio `tests` pasan, este se completará exitosamente.
+    *   Solo entonces se iniciará el servicio `app`. El servicio `app` mismo (usando `run.py`) *también* ejecutará las pruebas nuevamente como una verificación interna antes de lanzar el servidor de la aplicación Flask.
 
-2.  **Iniciar la Aplicación**:
-    Una vez que las pruebas hayan pasado y estés en el directorio raíz del proyecto (`chileatiende_assistant`), ejecuta el siguiente comando en tu terminal:
+2.  **Acceder a la Aplicación**:
+    Si todas las pruebas pasan y el servicio `app` se inicia, la aplicación Flask estará disponible en `http://127.0.0.1:5000/` o `http://localhost:5000/`.
+
+3.  **Detener la Aplicación**:
+    Para detener la aplicación, presiona `Ctrl+C` en la terminal donde se está ejecutando `docker-compose up`. Para eliminar los contenedores, puedes ejecutar `docker-compose down`.
+
+## Pruebas (con Docker)
+
+El proyecto está configurado para ejecutar pruebas de dos maneras principales con Docker:
+
+1.  **Automáticamente durante el Inicio de la Aplicación**:
+    Como se describe en la sección "Ejecución de la Aplicación", cuando ejecutas `docker-compose up`, el servicio `tests` se ejecuta primero. Si estas pruebas fallan, el servicio de la aplicación (`app`) no se iniciará. Si pasan, el servicio `app` luego también ejecutará las pruebas internamente a través de `run.py` antes de iniciar el servidor Flask.
+
+2.  **Independientemente mediante un Comando de Prueba Dedicado**:
+    Si deseas ejecutar las pruebas sin iniciar la aplicación completa, o para ver la salida de las pruebas más directamente:
+    *   Asegúrate de que tu archivo `.env` esté configurado, ya que las pruebas podrían requerir claves API u otras variables de entorno.
+    *   Abre tu terminal en la raíz del proyecto y ejecuta:
+        ```bash
+        docker-compose run --rm tests
+        ```
+    Este comando ejecuta específicamente el servicio `tests` definido en `docker-compose.yml`, el cual ejecuta `pytest --cov=app`. La bandera `--rm` asegura que el contenedor se elimine después de que las pruebas finalicen. Verás los resultados de las pruebas y el informe de cobertura en tu terminal.
+
+Para generar y ver un informe de cobertura HTML:
+
+1.  Primero, asegúrate de que el directorio `htmlcov` pueda ser escrito por el contenedor de Docker o ajusta los montajes de volumen si es necesario. Para simplificar, puedes ejecutar pytest fuera de Docker si tienes un entorno Python local configurado, o ingresando al contenedor `app` en ejecución:
     ```bash
-    python run.py
+    # Si la app se está ejecutando mediante docker-compose up -d
+    docker-compose exec app pytest --cov=app --cov-report=html
+    # Luego, el directorio htmlcov estará dentro de /usr/src/app del contenedor.
+    # Es posible que necesites copiarlo: docker cp <id_contenedor>:/usr/src/app/htmlcov ./htmlcov
     ```
-3.  La aplicación Flask se iniciará (si las pruebas en `run.py` también pasan). Por defecto, estará disponible en `http://127.0.0.1:5000/` o `http://localhost:5000/`.
-4.  Abre esta URL en tu navegador web para interactuar con el asistente.
+    Alternativamente, para CI/CD, la salida en terminal de `pytest --cov=app` suele ser suficiente.
 
 ## Funcionamiento Interno
 
@@ -160,6 +181,9 @@ Antes de ejecutar la aplicación, es crucial asegurarse de que todas las pruebas
 *   **HTML, CSS, JavaScript**: Para la interfaz de usuario del chat.
 *   **SQLite**: Para el almacenamiento de sesiones del agente.
 *   **python-dotenv**: Para gestionar variables de entorno.
+*   **pytest**: Para la ejecución de pruebas.
+*   **Coverage.py**: Para medir la cobertura de código de las pruebas.
+*   **Docker & Docker Compose**: Para la contenedorización y simplificación del despliegue/desarrollo.
 
 ## Posibles Mejoras Futuras
 

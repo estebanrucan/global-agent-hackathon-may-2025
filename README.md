@@ -53,51 +53,42 @@ The project follows a modular structure to facilitate maintenance and scalabilit
 │   └── templates/          # HTML templates (index.html)
 ├── data/                   # Directory for databases (e.g., agent_sessions.db)
 ├── config.py               # Flask application configurations (keys, debug)
-├── run.py                  # Script to run the application
-├── .env                    # File for environment variables (API Keys)
-├── requirements.txt        # Project dependencies
+├── run.py                  # Script to run the application (primarily used inside Docker)
+├── .env                    # File for environment variables (API Keys) - YOU MUST CREATE THIS
+├── .env.example            # Example environment variables 
+├── requirements.txt        # Project dependencies (used by Docker)
+├── Dockerfile              # Defines the Docker image for the application
+├── .dockerignore           # Specifies files to ignore by Docker
+├── docker-compose.yml      # Defines services, networks, and volumes for Docker
+├── tests/                  # Directory for tests
+│   ├── __init__.py
+│   ├── conftest.py         # Common test configurations (fixtures)
+│   ├── test_agent_core.py  # Tests for the agent core
+│   ├── test_api.py         # Tests for API routes
+│   └── test_app.py         # General application tests
 └── README.md               # This file
 ```
 
 ## Prerequisites
 
-*   Python 3.9 or higher
-*   pip (Python package manager)
-*   A modern web browser
+*   Docker Desktop (or Docker Engine + Docker Compose) installed and running.
+*   A modern web browser.
+*   Git (for cloning the repository).
 
 ## Environment Setup
 
-1.  **Navigate to the Project Directory**:
-    Open your terminal or command prompt and navigate to the main directory where this project's files are located.
+1.  **Clone the Repository**:
     ```bash
-    cd path/to/your/chileatiende_assistant
+    git clone <repository_url>
+    cd chileatiende_assistant 
     ```
+    (Replace `<repository_url>` with the actual URL of your Git repository)
 
-2.  **Create a Virtual Environment** (recommended):
-    ```bash
-    python -m venv venv
-    ```
-    Activate it:
-    *   On Windows:
-        ```bash
-        venv\Scripts\activate
-        ```
-    *   On macOS/Linux:
-        ```bash
-        source venv/bin/activate
-        ```
-
-3.  **Install Dependencies**:
-    Ensure you have the `requirements.txt` file in the project root.
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Configure Environment Variables**:
+2.  **Configure Environment Variables**:
     In the project root, you will find a file named `.env.example`.
     Make a copy of this file and name it `.env`:
 
-    *   On Windows (Command Prompt):
+    *   On Windows (Command Prompt or PowerShell):
         ```bash
         copy .env.example .env
         ```
@@ -112,42 +103,60 @@ The project follows a modular structure to facilitate maintenance and scalabilit
     FIRECRAWL_API_KEY="your_firecrawl_api_key_here"
     GOOGLE_API_KEY="your_google_gemini_api_key_here"
     SECRET_KEY="change_this_to_a_very_long_and_secure_secret_string"
-    FLASK_DEBUG=True
+    FLASK_DEBUG=True # Set to False for production-like behavior within Docker
     ```
-    Replace the placeholder values with your actual credentials and desired settings. The `.env` file is included in `.gitignore` and should not be committed to version control.
+    Replace the placeholder values with your actual credentials and desired settings. The `.env` file is crucial for the application to run correctly inside Docker and is included in `.dockerignore`, so it won't be committed to version control.
 
-## Running the Application
+## Running the Application (with Docker)
 
-Before running the application, it's crucial to ensure all tests pass.
+With Docker and Docker Compose installed, and your `.env` file configured:
 
-1.  **Run Tests**:
-    Open your terminal in the project root and execute the tests:
+1.  **Build and Run the Application and Tests**:
+    Open your terminal in the project root directory (`chileatiende_assistant`) and run:
     ```bash
-    pytest --cov=app
+    docker-compose up --build
     ```
-    If all tests pass, proceed to the next step. If any tests fail, please resolve them before starting the application.
+    This command will now orchestrate the services as follows:
+    *   First, it builds the Docker image for the application (if it's the first time or if `Dockerfile` or related files changed).
+    *   Then, it starts the `tests` service. This service runs all project tests (e.g., `pytest --cov=app`).
+    *   **If any tests in the `tests` service fail, the `docker-compose up` process will stop, and the `app` service will not start.**
+    *   If all tests in the `tests` service pass, it will complete successfully.
+    *   Only then will the `app` service start. The `app` service itself (using `run.py`) will *also* execute the tests again as an internal check before launching the Flask application server.
 
-2.  **Start the Application**:
-    Once the tests have passed and you are in the project root directory (`chileatiende_assistant`), run the following command in your terminal:
+2.  **Access the Application**:
+    If all tests pass and the `app` service starts, the Flask application will be available at `http://127.0.0.1:5000/` or `http://localhost:5000/`.
+    Open this URL in your web browser to interact with the assistant.
+
+3.  **Stopping the Application**:
+    To stop the application, press `Ctrl+C` in the terminal where `docker-compose up` is running. To remove the containers, you can run `docker-compose down`.
+
+## Testing (with Docker)
+
+The project is configured to run tests in two main ways with Docker:
+
+1.  **Automatically during Application Startup**:
+    As described in the "Running the Application" section, when you run `docker-compose up`, the `tests` service runs first. If these tests fail, the application service (`app`) will not start. If they pass, the `app` service will then also run the tests internally via `run.py` before starting the Flask server.
+
+2.  **Independently via a Dedicated Test Command**:
+    If you want to run tests without starting the full application, or to see test output more directly:
+    *   Ensure your `.env` file is configured, as tests might require API keys or other environment variables.
+    *   Open your terminal in the project root and execute:
+        ```bash
+        docker-compose run --rm tests
+        ```
+    This command specifically runs the `tests` service defined in `docker-compose.yml`, which executes `pytest --cov=app`. The `--rm` flag ensures the container is removed after tests complete. You will see the test results and coverage report in your terminal.
+
+To generate and view an HTML coverage report:
+
+1.  First, ensure the `htmlcov` directory can be written to by the Docker container or adjust volume mounts if needed. For simplicity, you can run tests, then copy the `htmlcov` directory out if it's generated inside the container, or modify the test command to output it to a mounted volume.
+    A simpler approach for HTML reports with Docker might involve running pytest outside Docker if you have a local Python environment set up, or by entering the running `app` container:
     ```bash
-    python run.py
+    # If app is running via docker-compose up -d
+    docker-compose exec app pytest --cov=app --cov-report=html
+    # Then, the htmlcov directory will be inside the container's /usr/src/app.
+    # You might need to copy it out: docker cp <container_id>:/usr/src/app/htmlcov ./htmlcov
     ```
-3.  The Flask application will start (if tests in `run.py` also pass). By default, it will be available at `http://127.0.0.1:5000/` or `http://localhost:5000/`.
-4.  Open this URL in your web browser to interact with the assistant.
-
-## Internal Workings
-
-*   **User Interface (`index.html`, `style.css`, `app.js`)**: Provides a simple and accessible chat window. User questions are sent to the backend via JavaScript (`fetch API`).
-*   **Backend (Flask)**:
-    *   `run.py` starts the Flask application using the `create_app` factory defined in `app/__init__.py`.
-    *   `app/__init__.py` configures the application, loads settings from `config.py`, and registers Blueprints.
-    *   `app/main/routes.py` serves the main page (`index.html`).
-    *   `app/api/routes.py` handles requests to `/api/chat`. It generates/retrieves a `user_id` and `session_id` for the user (using Flask session) and passes the query to the `chat_handler`.
-*   **Agent Core (`app/agent_core/`)**:
-    *   `agent_config.py`: Contains prompt templates, `FirecrawlTool` configuration.
-    *   `agent_setup.py`: Initializes the LLM model (Gemini), `FirecrawlTool` instance, session storage (`SqliteStorage` in the `data/` directory), and the Agno `Agent`. This agent is configured with tools, instructions, and the storage system for history.
-    *   `chat_handler.py`: The `handle_message` function receives the user's question and session/user IDs, invokes the agent (`agent.run()`), and returns the generated response.
-*   **Memory and State**: `SqliteStorage` is used to maintain a conversation history per session (`user_id`, `session_id`), allowing the agent to have context from previous interactions within the same session.
+    Alternatively, for CI/CD, the terminal output of `pytest --cov=app` is often sufficient.
 
 ## Technologies Used
 
@@ -159,6 +168,7 @@ Before running the application, it's crucial to ensure all tests pass.
 *   **HTML, CSS, JavaScript**: For the chat user interface.
 *   **SQLite**: For agent session storage.
 *   **python-dotenv**: For managing environment variables.
+*   **Docker & Docker Compose**: For containerization and simplified deployment/development.
 
 ## Potential Future Improvements
 
