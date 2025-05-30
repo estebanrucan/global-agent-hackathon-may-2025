@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000" # Map host port 5000 to container port 5000
+    volumes:
+      - .:/usr/src/app # Mount current directory to workdir in container
+    env_file:
+      - .env # Load environment variables from .env file
+    # The default command is already CMD ["python", "run.py"] in Dockerfile
+
+  # Optional service to just run tests
+  tests:
+    build: .
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - .env
+    # Overrides the Dockerfile CMD
+    command: ["python", "-m", "pytest", "--cov=app"] 
