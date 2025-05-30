@@ -6,6 +6,10 @@ Este proyecto es un asistente de inteligencia artificial que ingiere, indexa y r
 
 El proyecto tiene como objetivo demostrar un flujo de trabajo donde un agente rastrea, estructura y actualiza continuamente el contenido de ChileAtiende, proporcionando respuestas fiables y respaldadas por citas en lenguaje natural.
 
+## Demostración en video
+
+LINK: <https://youtu.be/xKKGC60bA4g?si=DN_hUMciPLxKHAjz>
+
 ## Equipo del Proyecto
 
 Este proyecto fue desarrollado por:

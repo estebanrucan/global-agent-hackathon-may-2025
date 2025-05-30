@@ -6,6 +6,10 @@ This project is an artificial intelligence assistant that ingests, indexes, and 
 
 The project aims to demonstrate a pipeline where a single AI agent crawls, structures, and continuously refreshes ChileAtiende content, providing reliable, citation-backed answers in natural language.
 
+## Video Demo
+
+LINK: <https://youtu.be/xKKGC60bA4g?si=DN_hUMciPLxKHAjz>
+
 ## Project Team
 
 This project was developed by:
