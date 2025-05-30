@@ -68,10 +68,10 @@ El proyecto sigue una estructura modular para facilitar el mantenimiento y la es
 
 ## Configuración del Entorno
 
-1.  **Clonar el Repositorio (si aplica)**:
+1.  **Navegar al Directorio del Proyecto**:
+    Abre tu terminal o símbolo del sistema y navega al directorio principal donde se encuentran los archivos de este proyecto.
     ```bash
-    git clone <url-del-repositorio>
-    cd chileatiende_assistant
+    cd ruta/a/tu/chileatiende_assistant
     ```
 
 2.  **Crear un Entorno Virtual** (recomendado):
@@ -119,14 +119,21 @@ El proyecto sigue una estructura modular para facilitar el mantenimiento y la es
 
 ## Ejecución de la Aplicación
 
-Una vez que el entorno esté configurado y las dependencias instaladas:
+Antes de ejecutar la aplicación, es crucial asegurarse de que todas las pruebas pasen.
 
-1.  Asegúrate de estar en el directorio raíz del proyecto (`chileatiende_assistant`).
-2.  Ejecuta el siguiente comando en tu terminal:
+1.  **Ejecutar Pruebas**:
+    Abre tu terminal en la raíz del proyecto y ejecuta las pruebas:
+    ```bash
+    pytest --cov=app
+    ```
+    Si todas las pruebas pasan, procede al siguiente paso. Si alguna prueba falla, por favor resuélvela antes de iniciar la aplicación.
+
+2.  **Iniciar la Aplicación**:
+    Una vez que las pruebas hayan pasado y estés en el directorio raíz del proyecto (`chileatiende_assistant`), ejecuta el siguiente comando en tu terminal:
     ```bash
     python run.py
     ```
-3.  La aplicación Flask se iniciará. Por defecto, estará disponible en `http://127.0.0.1:5000/` o `http://localhost:5000/`.
+3.  La aplicación Flask se iniciará (si las pruebas en `run.py` también pasan). Por defecto, estará disponible en `http://127.0.0.1:5000/` o `http://localhost:5000/`.
 4.  Abre esta URL en tu navegador web para interactuar con el asistente.
 
 ## Funcionamiento Interno

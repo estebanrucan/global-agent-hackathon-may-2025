@@ -38,8 +38,9 @@ def get_agent():
         if not google_api_key:
             raise ValueError("GOOGLE_API_KEY no configurada en .env")
         if not firecrawl_api_key:
-            # FirecrawlTool ya lanza un error si no hay key, pero podemos ser explícitos aquí también
-            current_app.logger.warning("FIRECRAWL_API_KEY no configurada. La herramienta Firecrawl podría no funcionar.")
+            # FirecrawlTool ya lanza un error si no hay key, por lo que el warning aquí es redundante.
+            # current_app.logger.warning("FIRECRAWL_API_KEY no configurada. La herramienta Firecrawl podría no funcionar.")
+            pass # FirecrawlTool.__init__ will raise an error if key is missing.
 
         # Inicializar el modelo
         model = Gemini(

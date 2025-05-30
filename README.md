@@ -67,10 +67,10 @@ The project follows a modular structure to facilitate maintenance and scalabilit
 
 ## Environment Setup
 
-1.  **Clone the Repository (if applicable)**:
+1.  **Navigate to the Project Directory**:
+    Open your terminal or command prompt and navigate to the main directory where this project's files are located.
     ```bash
-    git clone <repository-url>
-    cd chileatiende_assistant
+    cd path/to/your/chileatiende_assistant
     ```
 
 2.  **Create a Virtual Environment** (recommended):
@@ -118,14 +118,21 @@ The project follows a modular structure to facilitate maintenance and scalabilit
 
 ## Running the Application
 
-Once the environment is set up and dependencies are installed:
+Before running the application, it's crucial to ensure all tests pass.
 
-1.  Ensure you are in the project root directory (`chileatiende_assistant`).
-2.  Run the following command in your terminal:
+1.  **Run Tests**:
+    Open your terminal in the project root and execute the tests:
+    ```bash
+    pytest --cov=app
+    ```
+    If all tests pass, proceed to the next step. If any tests fail, please resolve them before starting the application.
+
+2.  **Start the Application**:
+    Once the tests have passed and you are in the project root directory (`chileatiende_assistant`), run the following command in your terminal:
     ```bash
     python run.py
     ```
-3.  The Flask application will start. By default, it will be available at `http://127.0.0.1:5000/` or `http://localhost:5000/`.
+3.  The Flask application will start (if tests in `run.py` also pass). By default, it will be available at `http://127.0.0.1:5000/` or `http://localhost:5000/`.
 4.  Open this URL in your web browser to interact with the assistant.
 
 ## Internal Workings
@@ -160,3 +167,39 @@ Once the environment is set up and dependencies are installed:
 *   Enhance error handling and logging.
 *   Implement an admin panel for monitoring interactions.
 *   Develop more comprehensive unit and integration tests. 
+
+## Testing
+
+This project uses `pytest` for running tests and `coverage.py` (via `pytest-cov`) for measuring test coverage.
+
+### Prerequisites for Testing
+
+Ensure you have installed the development dependencies:
+
+```bash
+pip install -r requirements.txt 
+# (pytest, pytest-cov, and coverage are included in requirements.txt)
+```
+
+### Running Tests
+
+To run all tests and see a quick summary of coverage in the terminal:
+
+```bash
+pytest --cov=app
+```
+
+To generate a detailed HTML coverage report (after running the command above or just `pytest --cov=app`):
+
+1.  Run pytest with HTML report generation:
+    ```bash
+    pytest --cov=app --cov-report=html
+    ```
+2.  Open the generated report in your browser:
+    ```
+    htmlcov/index.html
+    ```
+
+This report will show line-by-line coverage for each file in the `app` module.
+
+The goal is to maintain 100% test coverage. 
