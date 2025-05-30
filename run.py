@@ -34,11 +34,11 @@ if __name__ == '__main__':
     test_exit_code = run_tests()
     if test_exit_code == 0:
         logging.info("Todas las pruebas pasaron. Iniciando la aplicación...")
-        app.run(debug=app.config.get('DEBUG', False))
+        app.run(host='0.0.0.0', port=5000, debug=app.config.get('DEBUG', False))
     elif test_exit_code == 5: # pytest specific exit code: no tests collected
         logging.warning("Advertencia: No se recolectaron pruebas por pytest. Iniciando la aplicación de todas formas...")
         logging.warning("Asegúrate de que tus pruebas estén correctamente configuradas.")
-        app.run(debug=app.config.get('DEBUG', False))
+        app.run(host='0.0.0.0', port=5000, debug=app.config.get('DEBUG', False))
     else:
         logging.error("Las pruebas fallaron o ocurrió un error. La aplicación no se iniciará.")
         logging.error(f"Pytest finalizó con el código de salida: {test_exit_code}")

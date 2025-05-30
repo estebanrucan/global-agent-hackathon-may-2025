@@ -15,3 +15,5 @@ COPY . .
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
+
+CMD ["python", "run.py"]
