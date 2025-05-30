@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM completamente cargado y analizado. Inicializando app de chat.");
     const sendBtn = document.getElementById('send-btn');
     const userInput = document.getElementById('user-input');
     const chatWindow = document.getElementById('chat-window');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessage(sender, text, isHtml = false) {
         const msgArticle = document.createElement('article');
         msgArticle.classList.add('chat-message', sender);
+        console.log(`Añadiendo mensaje de ${sender}:`, isHtml ? "(HTML)" : text);
         
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('message');
@@ -59,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Si hay una síntesis en curso, detenerla
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
+            console.log("Síntesis de voz detenida.");
             // Si el botón actual es el mismo que inició la síntesis, solo detener
             if (button.classList.contains('speaking')) {
                 button.classList.remove('speaking');
@@ -71,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Crear nueva síntesis de voz
+        console.log("Iniciando síntesis de voz para el texto:", text.substring(0, 50) + "...");
         currentUtterance = new SpeechSynthesisUtterance(text);
         currentUtterance.lang = 'es-ES'; // Español
         currentUtterance.rate = 1.0; // Velocidad normal
@@ -82,11 +86,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Eventos de la síntesis
         currentUtterance.onend = function() {
             button.classList.remove('speaking');
+            console.log("Síntesis de voz finalizada.");
         };
 
-        currentUtterance.onerror = function() {
+        currentUtterance.onerror = function(event) {
             button.classList.remove('speaking');
-            console.error('Error en la síntesis de voz');
+            console.error('Error en la síntesis de voz:', event.error);
         };
 
         // Iniciar la síntesis
@@ -98,11 +103,13 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingIndicator.style.display = 'block';
             sendBtn.disabled = true;
             userInput.disabled = true;
+            console.log("Mostrando indicador de carga.");
         } else {
             loadingIndicator.style.display = 'none';
             sendBtn.disabled = false;
             userInput.disabled = false;
             userInput.focus();
+            console.log("Ocultando indicador de carga.");
         }
     }
 
@@ -110,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = userInput.value.trim();
         if (!text) return;
 
+        console.log("Enviando mensaje del usuario:", text);
         appendMessage('user', text);
         userInput.value = '';
         userInput.style.height = 'auto'; // Resetear altura del textarea
@@ -135,14 +143,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.error) {
                 appendMessage('bot', `Error: ${data.error}`);
+                console.error("Error recibido del backend:", data.error);
             } else {
                 // Convertir Markdown a HTML y sanitizarlo para mitigar XSS antes de insertarlo
                 const htmlResponse = marked.parse(data.response);
                 const safeHtml = DOMPurify.sanitize(htmlResponse);
                 appendMessage('bot', safeHtml, true);
+                console.log("Respuesta del bot (HTML) recibida y añadida al chat.");
             }
         } catch (e) {
             appendMessage('bot', `Error de comunicación: ${e.message}`);
+            console.error("Error de comunicación en handleSendMessage:", e);
         } finally {
             showLoading(false);
         }
@@ -167,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const initialMessage = initialMessageElement.textContent || initialMessageElement.innerText;
             initialAudioButton.addEventListener('click', function() {
                 toggleSpeech(initialMessage, initialAudioButton);
+                console.log("Reproduciendo mensaje inicial del bot.");
             });
         }
     }
