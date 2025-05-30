@@ -15,6 +15,3 @@ COPY . .
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
-# Run run.py when the container launches
-# This script will first run tests and then start the Flask app
-CMD ["python", "run.py"] 

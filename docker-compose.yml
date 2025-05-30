@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   tests: # Defined so app can depend on it
     build: .
