@@ -187,8 +187,6 @@ Para generar y ver un informe de cobertura HTML:
 
 ## Posibles Mejoras Futuras
 
-*   Implementar un sistema de autenticación de usuarios para memoria persistente a largo plazo.
-*   Añadir más herramientas al agente (ej., consulta de bases de datos internas, APIs de servicios específicos).
-*   Mejorar el manejo de errores y el logging.
+*   Añadir más herramientas al agente (ej., consulta de otras bases de datos).
 *   Implementar un panel de administración para monitorizar interacciones.
 *   Desarrollar pruebas unitarias y de integración más completas. 
