@@ -66,8 +66,7 @@ El proyecto sigue una estructura modular para facilitar el mantenimiento y la es
 │   ├── test_agent_core.py  # Pruebas para el núcleo del agente
 │   ├── test_api.py         # Pruebas para las rutas de la API
 │   └── test_app.py         # Pruebas generales de la aplicación
-└── README.md               # Este archivo (versión en inglés)
-└── README_es.md            # Versión en español de este archivo
+└── README_es.md            # Este archivo
 ```
 
 ## Prerrequisitos
@@ -168,7 +167,7 @@ Para generar y ver un informe de cobertura HTML:
 *   **Núcleo del Agente (`app/agent_core/`)**:
     *   `agent_config.py`: Contiene plantillas de prompts, configuración de `FirecrawlTool`.
     *   `agent_setup.py`: Inicializa el modelo LLM (Gemini), la instancia de `FirecrawlTool`, el almacenamiento de sesión (`SqliteStorage` en el directorio `data/`) y el `Agent` de Agno. Este agente se configura con herramientas, instrucciones y el sistema de almacenamiento para el historial.
-    *   `chat_handler.py`: La función `handle_message` recibe la pregunta del usuario y los IDs de sesión/usuario, invoca al agente (`agent.run()`) y devuelve la respuesta generada.
+    *   `chat_handler.py`: La función `handle_message` recibe la pregunta del usuario y los IDs de sesión/usuario, invoca al agente (`agent.run`) y devuelve la respuesta generada.
 *   **Memoria y Estado**: Se utiliza `SqliteStorage` para mantener un historial de conversación por sesión (`user_id`, `session_id`), permitiendo que el agente tenga contexto de interacciones previas dentro de la misma sesión.
 
 ## Tecnologías Utilizadas
@@ -185,10 +184,159 @@ Para generar y ver un informe de cobertura HTML:
 *   **Coverage.py**: Para medir la cobertura de código de las pruebas.
 *   **Docker & Docker Compose**: Para la contenedorización y simplificación del despliegue/desarrollo.
 
+## Arquitectura y Flujo del Agente
+
+Esta sección describe la arquitectura del Asistente de IA ChileAtiende y el flujo típico de interacción del usuario.
+
+### Arquitectura General
+
+El siguiente diagrama ilustra los componentes principales de la aplicación y cómo están organizados en capas:
+
+```mermaid
+graph LR
+    subgraph "1. Capa de Presentación"
+        User[Usuario] -->|Envía mensaje| UI[index.html]
+        UI -->|POST /api/chat| APIEndpoint[API Endpoint]
+    end
+
+    subgraph "2. Capa de API (Flask)"
+        APIEndpoint -->|Valida request| APIRoutes[app/api/routes.py]
+        APIRoutes -->|Extrae mensaje, user_id, session_id| SessionManager[Gestión de Sesión]
+        SessionManager -->|Llama a| ChatHandler[chat_handler.py]
+    end
+
+    subgraph "3. Capa de Lógica del Agente"
+        ChatHandler -->|get_agent| AgentSetup[agent_setup.py]
+        
+        subgraph "Inicialización del Agente"
+            AgentSetup -->|Lee configuración| Config[config.py]
+            Config -->|API Keys| Keys[Google API Key<br/>Firecrawl API Key]
+            
+            AgentSetup -->|Crea| Components{Componentes del Agente}
+            Components -->|1| GeminiModel[Modelo Gemini<br/>gemini-2.0-flash]
+            Components -->|2| SqliteDB[SqliteStorage<br/>agent_sessions.db]
+            Components -->|3| FirecrawlTool[FirecrawlTool]
+            Components -->|4| Instructions[AGENT_INSTRUCTIONS<br/>Persona: Tomás]
+        end
+
+        subgraph "Ejecución del Agente"
+            AgentSetup -->|Retorna| AgentInstance[Instancia Agno Agent]
+            ChatHandler -->|agent.run| AgentInstance
+            AgentInstance -->|Procesa con| AgentLogic{Lógica del Agente}
+            
+            AgentLogic -->|Usa historial| SqliteDB
+            AgentLogic -->|Usa modelo| GeminiModel
+            AgentLogic -->|Sigue instrucciones| Instructions
+            AgentLogic -->|Si necesita buscar| FirecrawlExec[Ejecuta FirecrawlTool]
+        end
+    end
+
+    subgraph "4. Capa de Herramientas Externas"
+        FirecrawlExec -->|search| FirecrawlAPI[FirecrawlApp API]
+        FirecrawlAPI -->|Busca en| ChileAtiende[www.chileatiende.gob.cl]
+        ChileAtiende -->|Resultados HTML| FirecrawlAPI
+        FirecrawlAPI -->|Filtra fichas, excluye PDFs| FilteredResults[Resultados Filtrados]
+        FilteredResults -->|Formatea con template| MarkdownResult[Resultado en Markdown]
+    end
+
+    subgraph "5. Flujo de Respuesta"
+        MarkdownResult -->|Retorna a| AgentLogic
+        AgentLogic -->|Genera respuesta final| FinalResponse[Respuesta en Markdown<br/>con formato de Tomás]
+        FinalResponse -->|Retorna a| ChatHandler
+        ChatHandler -->|Retorna a| APIRoutes
+        APIRoutes -->|JSON Response| UI
+        UI -->|Muestra respuesta| User
+    end
+```
+
+### Flujo de Interacción (Agente Tomás)
+
+Este diagrama de secuencia muestra el flujo de interacción típico cuando un usuario realiza una consulta:
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant W as Web UI
+    participant A as API Flask
+    participant H as Chat Handler
+    participant T as Agente Tomás
+    participant F as FirecrawlTool
+    participant C as ChileAtiende
+    participant DB as SQLite DB
+
+    U->>W: Escribe consulta sobre trámite
+    W->>A: POST /api/chat {message}
+    A->>A: Genera/recupera session_id y user_id
+    A->>H: handle_message(message, user_id, session_id)
+    H->>T: get_agent [Singleton]
+    
+    alt Primera vez
+        T->>T: Inicializa con:<br/>- Modelo Gemini<br/>- Instrucciones de Tomás<br/>- FirecrawlTool<br/>- SQLite Storage
+    end
+    
+    H->>T: agent.run(message, user_id, session_id)
+    T->>DB: Recupera historial de conversación
+    T->>T: Analiza mensaje según instrucciones:<br/>1. Saludo cordial si es primera vez<br/>2. Identifica necesidad del usuario<br/>3. Decide si necesita buscar info
+    
+    alt Necesita buscar información
+        T->>F: search("consulta sobre trámite")
+        F->>C: Busca en ChileAtiende
+        C->>F: Retorna resultados HTML
+        F->>F: Filtra solo fichas (no PDFs)
+        F->>F: Formatea a Markdown
+        F->>T: Retorna información formateada
+    end
+    
+    T->>T: Genera respuesta como Tomás:<br/>- Lenguaje claro y amable<br/>- Paso a paso<br/>- Con referencias [1]<br/>- Pregunta de seguimiento
+    T->>DB: Guarda conversación
+    T->>H: Retorna respuesta en Markdown
+    H->>A: Retorna respuesta
+    A->>W: JSON {response: "..."}
+    W->>U: Muestra respuesta formateada
+
+    Note over U,W: El usuario puede continuar<br/>la conversación y Tomás<br/>mantendrá el contexto
+```
+
 ## Posibles Mejoras Futuras
 
 *   Implementar un sistema de autenticación de usuarios para memoria persistente a largo plazo.
 *   Añadir más herramientas al agente (ej., consulta de bases de datos internas, APIs de servicios específicos).
 *   Mejorar el manejo de errores y el logging.
 *   Implementar un panel de administración para monitorizar interacciones.
-*   Desarrollar pruebas unitarias y de integración más completas. 
+*   Desarrollar pruebas unitarias y de integración más completas.
+
+## Pruebas
+
+Este proyecto utiliza `pytest` para ejecutar pruebas y `coverage.py` (a través de `pytest-cov`) para medir la cobertura de las pruebas.
+
+### Prerrequisitos para las Pruebas
+
+Asegúrate de haber instalado las dependencias de desarrollo:
+
+```bash
+pip install -r requirements.txt 
+# (pytest, pytest-cov y coverage están incluidos en requirements.txt)
+```
+
+### Ejecución de Pruebas
+
+Para ejecutar todas las pruebas y ver un resumen rápido de la cobertura en la terminal:
+
+```bash
+pytest --cov=app
+```
+
+Para generar un informe de cobertura HTML detallado (después de ejecutar el comando anterior o simplemente `pytest --cov=app`):
+
+1.  Ejecuta pytest con la generación de informes HTML:
+    ```bash
+    pytest --cov=app --cov-report=html
+    ```
+2.  Abre el informe generado en tu navegador:
+    ```
+    htmlcov/index.html
+    ```
+
+Este informe mostrará la cobertura línea por línea para cada archivo en el módulo `app`.
+
+El objetivo es mantener una cobertura de pruebas del 100%.

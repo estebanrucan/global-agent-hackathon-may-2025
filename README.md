@@ -170,6 +170,119 @@ To generate and view an HTML coverage report:
 *   **python-dotenv**: For managing environment variables.
 *   **Docker & Docker Compose**: For containerization and simplified deployment/development.
 
+## Agent Architecture and Flow
+
+This section outlines the architecture of the ChileAtiende AI Assistant and the typical flow of user interaction.
+
+### Overall Architecture
+
+The following diagram illustrates the main components of the application and how they are layered:
+
+```mermaid
+graph LR
+    subgraph "1. Presentation Layer"
+        User[User] -->|Sends message| UI[index.html]
+        UI -->|POST /api/chat| APIEndpoint[API Endpoint]
+    end
+
+    subgraph "2. API Layer (Flask)"
+        APIEndpoint -->|Validates request| APIRoutes[app/api/routes.py]
+        APIRoutes -->|Extracts message, user_id, session_id| SessionManager[Session Management]
+        SessionManager -->|Calls| ChatHandler[chat_handler.py]
+    end
+
+    subgraph "3. Agent Logic Layer"
+        ChatHandler -->|get_agent| AgentSetup[agent_setup.py]
+        
+        subgraph "Agent Initialization"
+            AgentSetup -->|Reads config| Config[config.py]
+            Config -->|API Keys| Keys[Google API Key<br/>Firecrawl API Key]
+            
+            AgentSetup -->|Creates| Components{Agent Components}
+            Components -->|1| GeminiModel[Gemini Model<br/>gemini-2.0-flash]
+            Components -->|2| SqliteDB[SqliteStorage<br/>agent_sessions.db]
+            Components -->|3| FirecrawlTool[FirecrawlTool]
+            Components -->|4| Instructions[AGENT_INSTRUCTIONS<br/>Persona: Tomás]
+        end
+
+        subgraph "Agent Execution"
+            AgentSetup -->|Returns| AgentInstance[Agno Agent Instance]
+            ChatHandler -->|agent.run| AgentInstance
+            AgentInstance -->|Processes with| AgentLogic{Agent Logic}
+            
+            AgentLogic -->|Uses history| SqliteDB
+            AgentLogic -->|Uses model| GeminiModel
+            AgentLogic -->|Follows instructions| Instructions
+            AgentLogic -->|If search needed| FirecrawlExec[Execute FirecrawlTool]
+        end
+    end
+
+    subgraph "4. External Tools Layer"
+        FirecrawlExec -->|search| FirecrawlAPI[FirecrawlApp API]
+        FirecrawlAPI -->|Searches on| ChileAtiende[www.chileatiende.gob.cl]
+        ChileAtiende -->|HTML Results| FirecrawlAPI
+        FirecrawlAPI -->|Filters fact sheets, excludes PDFs| FilteredResults[Filtered Results]
+        FilteredResults -->|Formats with template| MarkdownResult[Markdown Result]
+    end
+
+    subgraph "5. Response Flow"
+        MarkdownResult -->|Returns to| AgentLogic
+        AgentLogic -->|Generates final response| FinalResponse[Markdown Response<br/>Tomás' Persona]
+        FinalResponse -->|Returns to| ChatHandler
+        ChatHandler -->|Returns to| APIRoutes
+        APIRoutes -->|JSON Response| UI
+        UI -->|Displays response| User
+    end
+```
+
+### Interaction Flow (Agent Tomás)
+
+This sequence diagram shows the typical interaction flow when a user asks a question:
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Web UI
+    participant A as Flask API
+    participant H as Chat Handler
+    participant T as Agent Tomás
+    participant F as FirecrawlTool
+    participant C as ChileAtiende
+    participant DB as SQLite DB
+
+    U->>W: Writes query about a procedure
+    W->>A: POST /api/chat {message}
+    A->>A: Generates/retrieves session_id & user_id
+    A->>H: handle_message(message, user_id, session_id)
+    H->>T: get_agent [Singleton]
+    
+    alt First time
+        T->>T: Initializes with:<br/>- Gemini Model<br/>- Tomás' Instructions<br/>- FirecrawlTool<br/>- SQLite Storage
+    end
+    
+    H->>T: agent.run(message, user_id, session_id)
+    T->>DB: Retrieves conversation history
+    T->>T: Analyzes message based on instructions:<br/>1. Warm greeting if first time<br/>2. Understands user's need<br/>3. Decides if search is needed
+    
+    alt Needs to search information
+        T->>F: search("query about procedure")
+        F->>C: Searches on ChileAtiende
+        C->>F: Returns HTML results
+        F->>F: Filters only fact sheets (no PDFs)
+        F->>F: Formats to Markdown
+        F->>T: Returns formatted information
+    end
+    
+    T->>T: Generates response as Tomás:<br/>- Clear and friendly language<br/>- Step-by-step guidance<br/>- With references [1]<br/>- Follow-up question
+    T->>DB: Saves conversation
+    T->>H: Returns response in Markdown
+    H->>A: Returns response
+    A->>W: JSON {response: "..."}
+    W->>U: Displays formatted response
+
+    Note over U,W: User can continue<br/>the conversation, and Tomás<br/>will maintain context
+```
+
 ## Potential Future Improvements
 
 *   Implement a user authentication system for long-term persistent memory.
