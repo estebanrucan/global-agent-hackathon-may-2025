@@ -285,9 +285,7 @@ sequenceDiagram
 
 ## Potential Future Improvements
 
-*   Implement a user authentication system for long-term persistent memory.
-*   Add more tools to the agent (e.g., querying internal databases, specific service APIs).
-*   Enhance error handling and logging.
+*   Add more tools to the agent (e.g., querying other databases).
 *   Implement an admin panel for monitoring interactions.
 *   Develop more comprehensive unit and integration tests. 
 

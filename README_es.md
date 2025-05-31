@@ -299,44 +299,6 @@ sequenceDiagram
 
 ## Posibles Mejoras Futuras
 
-*   Implementar un sistema de autenticación de usuarios para memoria persistente a largo plazo.
-*   Añadir más herramientas al agente (ej., consulta de bases de datos internas, APIs de servicios específicos).
-*   Mejorar el manejo de errores y el logging.
+*   Añadir más herramientas al agente (ej., consulta de otras bases de datos).
 *   Implementar un panel de administración para monitorizar interacciones.
-*   Desarrollar pruebas unitarias y de integración más completas.
-
-## Pruebas
-
-Este proyecto utiliza `pytest` para ejecutar pruebas y `coverage.py` (a través de `pytest-cov`) para medir la cobertura de las pruebas.
-
-### Prerrequisitos para las Pruebas
-
-Asegúrate de haber instalado las dependencias de desarrollo:
-
-```bash
-pip install -r requirements.txt 
-# (pytest, pytest-cov y coverage están incluidos en requirements.txt)
-```
-
-### Ejecución de Pruebas
-
-Para ejecutar todas las pruebas y ver un resumen rápido de la cobertura en la terminal:
-
-```bash
-pytest --cov=app
-```
-
-Para generar un informe de cobertura HTML detallado (después de ejecutar el comando anterior o simplemente `pytest --cov=app`):
-
-1.  Ejecuta pytest con la generación de informes HTML:
-    ```bash
-    pytest --cov=app --cov-report=html
-    ```
-2.  Abre el informe generado en tu navegador:
-    ```
-    htmlcov/index.html
-    ```
-
-Este informe mostrará la cobertura línea por línea para cada archivo en el módulo `app`.
-
-El objetivo es mantener una cobertura de pruebas del 100%.
+*   Desarrollar pruebas unitarias y de integración más completas. 
